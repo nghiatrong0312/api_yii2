@@ -138,7 +138,7 @@ class WorkController extends BaseController
                     return $response;
                 }
 
-                if ($works['status'] === 2) {
+                if ($works['status'] === 6) {
                     $response->statusCode = 401;
                     $response->data = array(
                         "error" => array(
@@ -192,6 +192,7 @@ class WorkController extends BaseController
 
                 $success[] = array(
                     'workId' => $value['workId'],
+                    "status" => true
                 );
 
                 $work_data  =  Work::find()->where(['id' => $value['workId']])->all();
@@ -201,7 +202,7 @@ class WorkController extends BaseController
                     $logs_model               =   new Logs();
                     $logs_model->userId       =   $user['id'];
                     $logs_model->flow         =   $log_data['flow'];
-                    $logs_model->workDate     =   date('Y-m-d h:i:s');
+                    $logs_model->workDate     =   date("Y-m-d", $log_data['workDate']/1000);
                     $logs_model->workId       =   $log_data['workId'];
                     $logs_model->eventId      =   $log_data['eventId'];
                     $logs_model->workTypeId   =   $log_data['workTypeId'];
@@ -212,7 +213,8 @@ class WorkController extends BaseController
                 }
                 foreach ($work_data as $key => $work_datas) {
 
-                    $work_datas->status = 2;
+                    $work_datas->status = 6;
+                    $work_datas->end = date("Y-m-d H:i:s", $value['end']/1000);
                     $work_datas->save();
 
                 }
