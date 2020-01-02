@@ -17,7 +17,7 @@ use Yii;
  * @property string|null $end
  * @property int|null $checkType
  * @property string|null $date
- * @property string|null $powerAlImage
+ * @property string|null $powerAIImage
  * @property string|null $createdAt
  * @property string|null $updatedAt
  * @property int|null $confirmStatus
@@ -48,7 +48,7 @@ class Work extends \yii\db\ActiveRecord
             [['start', 'end', 'date', 'createdAt', 'updatedAt'], 'safe'],
             [['userCode', 'code'], 'string', 'max' => 45],
             [['officeComment'], 'string', 'max' => 300],
-            [['powerAlImage'], 'string', 'max' => 255],
+            [['powerAIImage'], 'string', 'max' => 255],
             [['faOperationId', 'faOperationKind', 'faOperationDate', 'faConstructionTimePeriod'], 'string', 'max' => 30],
             [['faOperationDetail'], 'string', 'max' => 100],
         ];
@@ -70,7 +70,7 @@ class Work extends \yii\db\ActiveRecord
             'end' => 'End',
             'checkType' => 'Check Type',
             'date' => 'Date',
-            'powerAlImage' => 'Power Al Image',
+            'powerAIImage' => 'Power Al Image',
             'createdAt' => 'Created At',
             'updatedAt' => 'Updated At',
             'confirmStatus' => 'Confirm Status',

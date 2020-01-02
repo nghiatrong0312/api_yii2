@@ -7,6 +7,10 @@ use yii\db\Query;
 use app\models\Work;
 use app\models\User;
 use app\models\Logs;
+use app\models\SelfCheckTask;
+use app\models\OfficeCheckTask;
+use app\models\Image;
+use app\models\Audio;
 
 
 class WorkController extends BaseController
@@ -129,7 +133,7 @@ class WorkController extends BaseController
                 
 
                 if ($works['userCode'] !== $userCode) {
-                    $response->statusCode = 401;
+                    $response->statusCode = 400;
                     $response->data = array(
                          "error" => array(
                              "userCode" => "Value of userCode invalid",
@@ -139,7 +143,7 @@ class WorkController extends BaseController
                 }
 
                 if ($works['status'] === 6) {
-                    $response->statusCode = 401;
+                    $response->statusCode = 400;
                     $response->data = array(
                         "error" => array(
                             "userCode" => "successful job !",
@@ -150,7 +154,7 @@ class WorkController extends BaseController
 
                 foreach ($dif as $key => $value) {
                    if (isset($value)) {
-                        $response->statusCode = 401;
+                        $response->statusCode = 400;
                         $response->data = array(
                             "error" => array(
                                 "userCode" => "Value of userCode invalid",
@@ -163,7 +167,7 @@ class WorkController extends BaseController
                 {
                     if ($log_data['flow'] === '' || $log_data['workId'] === '' || $log_data['eventId'] === '' || $log_data['workDate'] === '' || $log_data['workTypeId'] === '' || $log_data['status'] === ''|| $log_data['id'] === '')
                     {
-                        $response->statusCode = 401;
+                        $response->statusCode = 400;
                         $response->data = array(
                             "error" => array(
                                 "userCode" => "Value of userCode invalid",
@@ -177,7 +181,7 @@ class WorkController extends BaseController
             $dups = array_diff_assoc($array, array_unique($array));
             foreach ($dups as $key => $dup) {
                 if (isset($dup)) {
-                    $response->statusCode = 401;
+                    $response->statusCode = 400;
                     $response->data = array(
                         "error" => array(
                             "userCode" => "sdf",
@@ -222,7 +226,7 @@ class WorkController extends BaseController
             return $success;
 
         }else{
-            $response->statusCode = 401;
+            $response->statusCode = 400;
             $response->data = array(
              "error" => array(
                  "userCode" => "Value of userCode invalid",
@@ -236,6 +240,145 @@ class WorkController extends BaseController
             );
             return $response;
         
+    }
+
+    public function actionCheck()
+    {
+        $response  = Yii::$app->response;
+        $request   = Yii::$app->request;
+        
+        $authUser  = $request->getAuthUser();
+        $images    = $request->post('images');
+
+        $works     = Work::findOne([
+                        'userCode' => $authUser,
+                        'id'       => $request->get('workId'),
+                    ]);
+
+        if ($works !== null) {
+
+            if ($request->post('workId') !=  $request->get('workId')) {
+
+                $response->statusCode = 400;
+                $response->data = array(
+                    "errors" => '',
+                );
+                return $response;
+            }
+
+            if (!empty($request->post('workTypeId'))) {
+
+                // if ($works['status'] == 2) {
+                //     $response->statusCode = 400;
+                //     $response->data = array(
+                //         "errors" => 'The work is starting !',
+                //     );
+                //     return $response;
+                // }
+
+                $self_check               =  new SelfCheckTask();
+                $self_check->userCode     =  $authUser; 
+                $self_check->workId       =  $request->post('workId');   
+                $self_check->state        =  123; 
+                $self_check->workTypeId   =  $request->post('workTypeId');  
+                $self_check->isAutomatic  =  $request->post('isAutomatic');  
+                $self_check->save(false);
+
+                $works->status            =  2;
+                $works->start             =  date("Y-m-d H:i:s");
+                $works->checkType         =  $request->post('checkType');
+                $works->powerAIImage      =  $request->post('powerAIImage');
+                $works->save();
+
+                $audio_model              =  new Audio();
+                $audio_model->checkType   =  $request->post('checkType');
+                $audio_model->taskId      =  $request->post('workId');
+                $audio_model->fileCode    =  $request->post('audioFileName');
+                $audio_model->fileName    =  $request->post('audioFileName');
+                $audio_model->save(false);
+
+
+
+                foreach ($images as $key => $image) {
+                    $img_model                         =   new Image();
+                    $img_model->taskId                 =   $request->post('workId');
+                    $img_model->checkType              =   $request->post('checkType');
+                    $img_model->checkItemId            =   $image['checkItemId'];
+                    $img_model->fileCode               =   $image['fileName'];
+                    $img_model->fileName               =   $image['fileName'];
+                    $img_model->isConfirmed            =   123;
+                    $img_model->objectRecognizeResult  =   $image['isObjectRecognizeSuccess'];
+                    $img_model->save(false);
+                }
+
+                return $works;
+
+            }
+            elseif (!empty($request->post('confirmTypeId'))) {
+
+                // if ($works['status'] == 3) {
+                //     $response->statusCode = 400;
+                //     $response->data = array(
+                //         "errors" => 'The work is starting !',
+                //     );
+                //     return $response;
+                // }
+
+                $office_check                 =  new OfficeCheckTask();
+                $office_check->userCode       =  $authUser; 
+                $office_check->workId         =  $request->post('workId');   
+                $office_check->comment        =  $request->post('comment');
+                $office_check->state          =  123; 
+                $office_check->confirmTypeId  =  $request->post('confirmTypeId');    
+                $office_check->save(false);
+
+                $works->status                =  3;
+                $works->start                 =  '';
+                $works->checkType             =  $request->post('checkType');
+                $works->save();
+
+                $audio_model                  =  new Audio();
+                $audio_model->checkType       =  $request->post('checkType');
+                $audio_model->taskId          =  $request->post('workId');
+                $audio_model->fileCode        =  $request->post('audioFileName');
+                $audio_model->fileName        =  $request->post('audioFileName');
+                $audio_model->save(false);
+
+                foreach ($images as $key => $image) {
+                    $img_model                         =   new Image();
+                    $img_model->taskId                 =   $request->post('workId');
+                    $img_model->checkType              =   $request->post('checkType');
+                    $img_model->checkItemId            =   $image['checkItemId'];
+                    $img_model->fileCode               =   $image['fileName'];
+                    $img_model->fileName               =   $image['fileName'];
+                    $img_model->isConfirmed            =   123;
+                    $img_model->objectRecognizeResult  =   $image['isObjectRecognizeSuccess'];
+                    $img_model->save(false);
+                }
+
+                return $works;
+            }
+            else{
+                $response->statusCode = 400;
+                $response->data = array(
+                    "errors" => '',
+                );
+                return $response;
+            }
+
+        }
+        elseif ($works === null) {
+            $response->statusCode = 400;
+            $response->data = array(
+                "errors" => '',
+            );
+            return $response;
+        }
+        $response->statusCode = 500;
+            $response->data = array(
+             "error" =>  "An error occured",
+            );
+        return $response;
     }
 
 

@@ -55,6 +55,8 @@ $config = [
                 'GET users/<userCode>/works'  => 'work/index',
                 'POST users/<userCode>/works' => 'work/create',
                 'PUT finish-work/all'   => 'work/finish',
+                'PUT works/<workId>'   => 'work/check',
+                'POST object/<filename>'   => 'object/index',
             ],
         ],
         
