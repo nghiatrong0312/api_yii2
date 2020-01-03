@@ -130,7 +130,6 @@ class WorkController extends BaseController
                 $id_model =  explode(' ', $works['id']);
                 $dif      =  array_diff($id, $id_model);
 
-                
 
                 if ($works['userCode'] !== $userCode) {
                     $response->statusCode = 400;
@@ -177,7 +176,7 @@ class WorkController extends BaseController
                     }
                 }
             }
-
+            
             $dups = array_diff_assoc($array, array_unique($array));
             foreach ($dups as $key => $dup) {
                 if (isset($dup)) {

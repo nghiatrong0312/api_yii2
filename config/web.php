@@ -57,6 +57,7 @@ $config = [
                 'PUT finish-work/all'   => 'work/finish',
                 'PUT works/<workId>'   => 'work/check',
                 'POST object/<filename>'   => 'object/index',
+                'GET recommend/<time:\d+>'   => 'recommend/index',
             ],
         ],
         
